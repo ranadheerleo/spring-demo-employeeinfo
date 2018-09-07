@@ -2,6 +2,8 @@ package com.employeeinfo.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.employeeinfo.controller.EmployeeForm;
@@ -22,7 +24,8 @@ public class EmployeeService {
 	@Autowired
 	private AddressRepository addressRepository;
 
-	@Transactional (timeout = 10, rollbackFor = InvalidEmployeeException.class)
+	@Transactional (propagation=Propagation.REQUIRED, rollbackFor = InvalidEmployeeException.class, 
+			readOnly=false, isolation=Isolation.READ_COMMITTED)
 	public String addNewEmployee(EmployeeForm employeeForm) throws InvalidEmployeeException {
 		Employee e = new Employee();
 		e.setName(employeeForm.getName());
@@ -32,19 +35,20 @@ public class EmployeeService {
 
 		employeeRepository.save(e);
 		
+		//
+//		if(true)
+//			throw new InvalidEmployeeException();
+		
 		Address a = new Address();
 		a.setCity(employeeForm.getCity());
 		a.setState(employeeForm.getState());
 		a.setStreet(employeeForm.getStreet());
 		a.setZipcode(employeeForm.getZipcode());
 		addressRepository.save(a);
-//
-//		if(true)
-//			throw new InvalidEmployeeException();
 		
 		return "Saved";
 	}
-	
+
 	public Iterable<Employee> getAllEmployees() {
 		return employeeRepository.findAll();
 	}
